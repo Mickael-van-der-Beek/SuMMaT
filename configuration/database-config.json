@@ -1,0 +1,7 @@
+{
+	"hostname": "localhost",
+	"dbname": "sumat",
+	"port": 27017,
+	"password": null,
+	"user": null
+}

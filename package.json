@@ -1,0 +1,16 @@
+{
+	"name": "sumat",
+	"author": "Mickael “LunaSea“ van der Beek <mickael@sagacify.com>",
+	"scripts": {
+		"start": "PORT=8080 NODE_ENV=production node --harmony_proxies server.js"
+	},
+	"version": "0.0.1",
+	"private": true,
+	"contributors": [
+		"Mickael “LunaSea“ van der Beek <mickael@sagacify.com>"
+	],
+	"dependencies": {
+		"express": "latest",
+		"mongoose": "latest"
+	}
+}
