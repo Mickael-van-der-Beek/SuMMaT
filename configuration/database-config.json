@@ -1,6 +1,6 @@
 {
 	"hostname": "localhost",
-	"dbname": "sumat",
+	"dbname": "SuMMAT",
 	"port": 27017,
 	"password": null,
 	"user": null

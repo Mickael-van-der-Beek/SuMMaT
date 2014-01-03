@@ -1,4 +1,4 @@
-var fs = require('fs'),
+var fs = require('fs')
   , httpServerConfig = require('../configuration/http_server-config')
   , env = process.env.NODE_ENV
   , port = process.env.PORT || httpServerConfig.port

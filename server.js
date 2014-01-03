@@ -1,18 +1,18 @@
 // Import the custom global print method for colors and convenience
 require('./utils/print-enhancements/print')();
 
-// Script that launches the MongoDB daemon
-require('./libs/mongodb/mongo-node')([
-	'--dbpath ./database/data/db',
-	'--nohttpinterface',
-	'--notablescan',
-	'--noscripting'
-]);
-
 // Launch the cluster module and start forking the applications
 var cluster = require('cluster');
 
 if(cluster.isMaster) {
+
+	// Script that launches the MongoDB daemon
+	require('./libs/mongodb/mongo-node')([
+		'--dbpath ./database/data/db',
+		'--nohttpinterface',
+		'--notablescan',
+		'--noscripting'
+	]);
 
 	var systemConfig = require('./configuration/system-config')
 	  , maxForkCountConfig = systemConfig.maxForkCount
