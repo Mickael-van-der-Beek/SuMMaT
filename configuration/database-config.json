@@ -1,7 +1,16 @@
 {
-	"hostname": "localhost",
-	"dbname": "SuMMAT",
-	"port": 27017,
-	"password": null,
-	"user": null
+	"application": {
+		"hostname": "localhost",
+		"dbname": "summat_app",
+		"port": 27017,
+		"password": null,
+		"user": null		
+	},
+	"logging": {
+		"hostname": "localhost",
+		"dbname": "summat_log",
+		"port": 27017,
+		"username": null,
+		"password": null
+	}
 }

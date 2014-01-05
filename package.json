@@ -2,7 +2,8 @@
 	"name": "SuMMAT",
 	"author": "Mickael “LunaSea“ van der Beek <mickael@sagacify.com>",
 	"scripts": {
-		"start": "PORT=8080 NODE_ENV=production node --harmony_proxies server.js"
+		"prod": "PORT=8080 NODE_ENV=production node --harmony_proxies server.js",
+		"start": "PORT=8080 NODE_ENV=development node --harmony_proxies server.js"
 	},
 	"version": "0.0.1",
 	"private": true,
@@ -11,6 +12,8 @@
 	],
 	"dependencies": {
 		"express": "latest",
-		"mongoose": "latest"
+		"mongoose": "latest",
+		"winston": "latest",
+		"winston-mongodb": "latest"
 	}
 }

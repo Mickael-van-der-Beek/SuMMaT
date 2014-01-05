@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 
-var databaseConfig = require('../configuration/database-config');
+var databaseConfig = require('../configuration/database-config').application;
 
 var hostname = databaseConfig.hostname
   , port = databaseConfig.port

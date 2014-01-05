@@ -1,6 +1,9 @@
 // Import the custom global print method for colors and convenience
 require('./utils/print-enhancements/print')();
 
+// Add easy getter / setters for extracting ingo from Error stacktraces
+require('./utils/prototypes/error-info')();
+
 // Launch the cluster module and start forking the applications
 var cluster = require('cluster');
 
@@ -29,9 +32,6 @@ if(cluster.isMaster) {
 
 }
 else {
-
-	// Add easy getter / setters for extracting ingo from Error stacktraces
-	require('./utils/prototypes/error-info')();
 
 	// Setup the HTTP server (Express.js)
 	require('./http-server/setup_HTTPServer')();

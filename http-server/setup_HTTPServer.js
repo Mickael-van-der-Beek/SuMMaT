@@ -6,21 +6,27 @@ var fs = require('fs')
   , server = express()
   , httpServer = require('http').createServer(server);
 
-var base_path = 'web-ui';
+var base_path = 'public';
 var base_html = 'index.html';
 var envPaths = {
-	'dev': 'dev',
+	'development': 'dev',
 	'production': 'dist'
 };
 
 function main () {
-	var staticPath = __dirname + '/' + base_path + '/' + envPaths[env];
+	var ExpressLogger = require('../mods/logging/ExpressTokens')(express);
+	var ExpressLogger = require('../mods/logging/ExpressLogger');
+
+	var staticPath = __dirname + '/../' + base_path + '/' + envPaths[env];
 
 	server.configure(function () {
 		// Don't show errors explicitly on screen
-		server.set('showStackError', true);
+		server.set('showStackError', false);
 		// Standard Express request logger
-		server.use(express.logger(':method :response-time ms :url :status'));
+		server.use(express.logger(ExpressLogger));
+		// server.use(express.logger({
+		// 	write: ExpressLogger
+		// }));
 		// Express's Request parser
 		server.use(express.bodyParser());
 		// Adds support for HTTP PUT and DELETE methods

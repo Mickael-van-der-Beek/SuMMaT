@@ -9,10 +9,10 @@ var paths = {
 	'mac': 'osx-x86_64' + '-' + version + '/bin/mongod'
 };
 
-function run_PhantomCommand (ospath, cmd_args) {
+function run_MongoCommand (ospath, cmd_args) {
 	var fullpath = kill_previous + ' && ' + base_path + '-' + ospath;
 	var command = fullpath + ' ' + cmd_args.join(' ');
-	NodeShell.run(command);
+	NodeShell.run(command, true);
 }
 
 function main (cmd_args) {
@@ -21,7 +21,7 @@ function main (cmd_args) {
 	if(os.match(/darwin/gi)) ospath = paths['mac'];
 	if(os.match(/^win/gi)) ospath = paths['windows'];
 	print('green', 'Launched MongoDB daemon if not already existing.');
-	run_PhantomCommand(ospath, cmd_args);
+	run_MongoCommand(ospath, cmd_args);
 }
 
 module.exports = main;

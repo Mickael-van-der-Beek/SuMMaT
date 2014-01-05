@@ -12,7 +12,7 @@ function print () {
 	var message = [];
 	var color = arguments[0] instanceof Error ? colors.red : '';
 	var hasColorArg = (arguments.length > 1) && is.String(arguments[0]);
-	if(!env || (env === 'development')) {
+	if(!env || (env === 'debug')) {
 		message.push('Script : ' + __script);
 		message.push('\nMethod : ' + __function + '()');
 		message.push('\nLine : ' + __line);
