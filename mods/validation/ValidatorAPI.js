@@ -1,8 +1,6 @@
-var flattenJSON = require('../utils/json-tools/json-flatten');
+var Validator = require('./Validator');
 
-var ValidatorSchema = require('./ValidatorSchema');
-
-function ValidatorSchemaCache () {
+function ValidatorAPI (app) {
 
 	var cache = {};
 
@@ -19,4 +17,4 @@ function ValidatorSchemaCache () {
 
 }
 
-module.exports = ValidatorSchemaCache;
+module.exports = ValidatorAPI;

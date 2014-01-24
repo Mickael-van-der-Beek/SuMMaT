@@ -1,30 +1,50 @@
 var is = require('../../utils/type-checks/isType');
+var flattenJSON = require('../utils/json-tools/json-flatten');
 
-function Validator (schema, url, callback) {
-	var instances = {};
+function Validator (schema, url) {
 
-	if(schema == null || !is.Object(schema)) {
-		return callback(new SGError('INVALID_VALIDATION_SCHEMA'));
+	if(schema === undefined || !is.Object(schema)) {
+		return new SGError('INVALID_VALIDATION_SCHEMA');
 	}
-	if(url == null || !is.String(url) /* || VALIDATE THAT URL IS VALID URL */) {
-		return callback(new SGError('INVALID_VALIDATION_URL'));
-	}
-	if(callback == null || !is.Function(callback)) {
-		return callback(new SGError('INVALID_VALIDATION_CALLBACK'));
+	if(url === undefined || !is.String(url)) {
+		return new SGError('INVALID_VALIDATION_URL');
 	}
 
-	if(!(instances[url] instanceof Validator)) {
-		return instances[url];
-	}
+	this.schema = new ValidatorSchemaCache(schema, url);
+	this.schema.format();
 
-	ValidatorSchema.format(schema, url, {});
-
-	// INCOMING-schemas and OUTGOING-schemas for each URL
-	// Light version of Mongoose schemas + MPath notation
-	// Use iterator pattern to access / validate fields
-	// Freeze / Seal the req object
-
-	return (instances[url] = this);
 }
+
+Validator.prototype = {
+
+	existenceError: 'MISSING_VALUE',
+
+	exec: function (url, object, callback) {
+
+		var cachedSchema = this.schema;
+		var flatObject = flattenJSON(object);
+		var error;
+		var val;
+		var key;
+		while((key = cachedSchema.next())) {
+			if(!(key in flatObject) && (error = this.existenceError)) {
+				break;
+			}
+			else {
+				val = flatObject[key];
+			}
+			if((error = cachedSchema.validateField(key, val))) {
+				break;
+			}
+			else {
+				mixin[key] = val;
+			}
+		}
+
+		return error || mixin;
+
+	}
+
+};
 
 module.exports = Validator;
