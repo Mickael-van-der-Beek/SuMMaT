@@ -1,46 +1,79 @@
-// Import the custom global print method for colors and convenience
-require('./utils/print-enhancements/print')();
+var NODE_ENV = process.env.NODE_ENV || 'production';
 
-// Add easy getter / setters for extracting ingo from Error stacktraces
-require('./utils/prototypes/error-info')();
+function InstanciateApplication () {
+	// Import the custom global print method for colors and convenience
+	require('./utils/print-enhancements/print')();
 
-// Launch the cluster module and start forking the applications
-var cluster = require('cluster');
+	// Add easy getter / setters for extracting ingo from Error stacktraces
+	require('./utils/prototypes/error-info')();
 
-if(cluster.isMaster) {
+	// Launch the cluster module and start forking the applications
+	var cluster = require('cluster');
 
-	// Script that launches the MongoDB daemon
-	require('./libs/mongodb/mongo-node')([
-		'--dbpath ./database/data/db',
-		'--nohttpinterface',
-		'--notablescan',
-		'--noscripting'
-	]);
+	if(cluster.isMaster) {
 
-	var systemConfig = require('./configuration/system-config')
-	  , maxForkCountConfig = systemConfig.maxForkCount
-	  , cpuCount = require('os').cpus().length
-	  , maxForkCount = (maxForkCountConfig === 'inherit') ? cpuCount : maxForkCountConfig;
+		if(NODE_ENV === 'development') {
+			/*!
+			* Script that launches the MongoDB daemon when developping on
+			* the localhost environnement.
+			*/
+			require('./libs/mongodb/mongo-node')([
+				'--dbpath ./database/data/db',
+				'--nohttpinterface',
+				'--notablescan',
+				'--noscripting'
+			]);
+		}
 
-	for(var i = 0; i < maxForkCount; i++) {
-		cluster.fork();
+		var systemConfig = require('./configuration/system-config')
+		  , maxForkCountConfig = systemConfig.maxForkCount
+		  , cpuCount = require('os').cpus().length
+		  , maxForkCount = (maxForkCountConfig === 'inherit') ? cpuCount : maxForkCountConfig || 1;
+
+		for(var i = 0; i < maxForkCount; i++) {
+			cluster.fork();
+		}
+
+		cluster.on('exit', function (worker) {
+			cluster.fork();
+		});
+
 	}
+	else {
 
-	cluster.on('exit', function (worker) {
-		cluster.fork();
-	});
+		/*!
+		* Adds a single event handler / emitter on the whole application so that
+		* external modules can listen on this event emitter loaded at startup time.
+		* Each module that makes use of this notification centre will listen on a namespace.
+		* e.g:
+		*		NotificationCentre.on(namespace:event, ...)
+		*/
+		var NotificationCentre = require('./mods/notification_centre/NotificationCentre');
 
+		NotificationCentre.on('startup:database', function () {
+			// Setup the database ODM (Mongoose for MongoDB)
+			require('./database/setup_ODM')(function () {
+				NotificationCentre.emit('startup:http-server');
+			});
+		});
+
+		NotificationCentre.on('startup:http-server', function () {
+			// Setup the HTTP server (Express.js)
+			require('./http-server/setup_HTTPServer')();
+		});
+
+		NotificationCentre.emit('startup:database');
+
+	}
+}
+
+/*!
+* Little hack used to import the application environnement inside the testing
+* framework, otherwise it will just start the app as usual. 
+*/
+if(NODE_ENV === 'testing') {
+	module.exports = InstanciateApplication;
 }
 else {
-
-	// Setup the HTTP server (Express.js)
-	require('./http-server/setup_HTTPServer')();
-
-	// Setup the database ODM (Mongoose for MongoDB)
-	require('./database/setup_ODM')(function () {
-
-		// The following code is run after all indexes are created
-
-	});
-
+	InstanciateApplication();
 }

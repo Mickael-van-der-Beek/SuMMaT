@@ -3,6 +3,7 @@ var RequestLogger = require('./RequestLogger')
 
 function ExpressLogger (tokens, req, res) {
 
+	// check if XHR flag was set too
 	//if(req.is('json') || req.is('application/json') || req.is('application/javascript')) {
 		RequestLogger.requests({
 			ip_addr			:	req.ips.length ? req.ips : req.ip,

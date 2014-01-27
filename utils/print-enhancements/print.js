@@ -1,5 +1,6 @@
 var is = require('../type-checks/isType')
-  , env = process.env.NODE_ENV;
+  , env = process.env.NODE_ENV
+  , util = require('util');
 
 var colors = {
 	red		: '\u001b[31m',
@@ -26,8 +27,18 @@ function print () {
 	console.log.apply(this, message);
 }
 
+function deprecateConsole () {
+	var message = 'Sorry, console is deprecated, please use print() instead.';
+	console.log = util.deprecate(console.log, message);
+	console.dir = util.deprecate(console.dir, message);
+	console.warn = util.deprecate(console.warn, message);
+	console.info = util.deprecate(console.info, message);
+	console.error = util.deprecate(console.error, message);
+}
+
 function main () {
 	global.print = print;
+	deprecateConsole();
 }
 
 module.exports = main;

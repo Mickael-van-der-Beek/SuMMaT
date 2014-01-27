@@ -3,15 +3,15 @@ exports.Function = function (obj) {
 };
 
 exports.Object = function (obj) {
-	return Object.prototype.toString.call(obj) === '[object Object]';
+	return (Object.prototype.toString.call(obj) === '[object Object]') && (obj.constructor === Object);
 };
 
 exports.Boolean = function (obj) {
-	return Object.prototype.toString.call(obj) === '[object Boolean]';
+	return (obj === true) || (obj === false);
 };
 
 exports.Array = function (obj) {
-	return Object.prototype.toString.call(obj) === '[object Array]';
+	return Array.isArray(obj);
 };
 
 exports.String = function (obj) {
@@ -19,11 +19,15 @@ exports.String = function (obj) {
 };
 
 exports.Number = function (obj) {
-	return Object.prototype.toString.call(obj) === '[object Number]';
+	return (Object.prototype.toString.call(obj) === '[object Number]') && !isNaN(obj);
+};
+
+exports.Int = function (obj) {
+	return exports.Number(obj) && ((obj | 0) === obj);
 };
 
 exports.Date = function (obj) {
-	return Object.prototype.toString.call(obj) === '[object Date]';
+	return (Object.prototype.toString.call(obj) === '[object Date]') && !isNaN(+obj);
 };
 
 exports.RegExp = function (obj) {
