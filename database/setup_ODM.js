@@ -1,26 +1,28 @@
 var mongoose = require('mongoose');
 
-var databaseConfig = require('../configuration/database-config').application;
+var databaseConfig = require('../configuration/database-config')
+  , appdbConfig = databaseConfig.application
+  , logdbConfig = databaseConfig.logging;
 
-var hostname = databaseConfig.hostname
-  , port = databaseConfig.port
-  , dbname = databaseConfig.dbname
-  , user = databaseConfig.user
-  , password = databaseConfig.password;
+var MongooseErrorHook = require('../mods/error_handler/MongooseErrorHook');
 
-function set_Globals () {
-	global.model = mongoose.model.bind(mongoose);
-	global.models = mongoose.models;
+function set_Globals (appdb, logdb) {
+	global.appdb = appdb;
+	global.logdb = logdb;
+	global.models = appdb.models;
 	global.Model = mongoose.Model;
 	global.Schema = mongoose.Schema;
-	global.ObjectId = mongoose.Schema.Types.ObjectId;
+	global.ObjectId = Schema.Types.ObjectId;
 }
 
-function set_ErrorHandler (mongoose) {
-	mongoose.connection.on('error', function (error) {
-		if(error) {
-			print('red', error);
-		}
+function set_ErrorHandler () {
+	appdb.connection.on('error', MongooseErrorHook);
+}
+
+function set_Models () {
+	var models_path = './models';
+	fs.readdirSync(models_path).forEach(function (file) {
+		require('./models/' + file);
 	});
 }
 
@@ -32,7 +34,7 @@ function on_IndexesReady (callback) {
 	function after_Indexing (error) {
 		counter = conter + 1;
 		if(error) {
-			print('red', error);
+			MongooseErrorHook(error);
 		}
 		else if(counter === len) {
 			print('green', 'Done indexing.');
@@ -42,6 +44,7 @@ function on_IndexesReady (callback) {
 	if(len) {
 		while(len--) {
 			modelname = modelnames[i];
+			model[modelname].on('error', MongooseErrorHook);
 			model[modelname].on('index', after_Indexing);
 		}
 	}
@@ -50,39 +53,48 @@ function on_IndexesReady (callback) {
 	}
 }
 
-function set_ConnectionHandler (mongoose, callback) {
-	mongoose.connection.on('connecting', function (error) {
+function set_ConnectionHandler (callback) {
+
+	appdb.connection.on('connecting', function (error) {
 		print('green', error || 'Connecting to ' + hostname + '\'s MongoDB daemon on port ' + port + ' ...');
 	});
-	mongoose.connection.on('connected', function (error) {
+	appdb.connection.on('connected', function (error) {
 		print('green', error || 'Connected to MongoDB successfully.');
 	});
-	mongoose.connection.on('open', function (error) {
+	appdb.connection.on('open', function (error) {
 		print('green', error || 'Opened connection to MongoDB successfully.');
 		on_IndexesReady(callback);
 	});
-	mongoose.connection.on('disconnecting', function (error) {
+	appdb.connection.on('disconnecting', function (error) {
 		print('yellow', error || 'Disconnecting from MongoDB ...');
 	});
-	mongoose.connection.on('disconnected', function (error) {
+	appdb.connection.on('disconnected', function (error) {
 		print('yellow', error || 'Disconnected from MongoDB successfully.');
 	});
-	mongoose.connection.on('close', function (error) {
+	appdb.connection.on('close', function (error) {
 		print('yellow', error || 'Closed connection to MongoDB successfully.');
 	});
-	mongoose.connection.on('reconnected', function (error) {
+	appdb.connection.on('reconnected', function (error) {
 		print('green', error || 'Reconnected to MongoDB successfully.');
 	});
+
 }
 
 function main (callback) {
-	mongoose.connect('mongodb://' + hostname + ':' + port + '/' + dbname, {
-		user: user || null,
-		pass: password || null
+	var appdb = mongoose.createConnection('mongodb://' + appdb.hostname + ':' + appdb.port + '/' + appdb.dbname, {
+		user: appdb.user || null,
+		pass: appdb.password || null
 	});
-	set_Globals();
-	set_ErrorHandler(mongoose);
-	set_ConnectionHandler(mongoose, callback);
+
+	var logdb = mongoose.createConnection('mongodb://' + logdb.hostname + ':' + logdb.port + '/' + logdb.dbname, {
+		user: logdb.user || null,
+		pass: logdb.password || null
+	});
+
+	set_Globals(appdb, logdb);
+	set_ErrorHandler();
+	set_Models();
+	set_ConnectionHandler(callback);
 }
 
 module.exports = main;

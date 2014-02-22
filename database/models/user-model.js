@@ -1,3 +1,3 @@
 var UserSchema = require('../schemas/user-schema');
 
-var UserModel = model(UserSchema, 'User');
+var UserModel = appdb.model(UserSchema, 'User');

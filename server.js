@@ -48,18 +48,22 @@ function InstanciateApplication () {
 		* e.g:
 		*		NotificationCentre.on(namespace:event, ...)
 		*/
-		var NotificationCentre = require('./mods/notification_centre/NotificationCentre');
+		global.NotificationCentre = require('./mods/notification_centre/NotificationCentre');
+
+		require('./mods/error_handler/ErrorLogger')();
 
 		NotificationCentre.on('startup:database', function () {
-			// Setup the database ODM (Mongoose for MongoDB)
+			// Setup the database ODM (Mongoose for MongoDB) and import the  schemas and models
 			require('./database/setup_ODM')(function () {
 				NotificationCentre.emit('startup:http-server');
 			});
 		});
 
 		NotificationCentre.on('startup:http-server', function () {
-			// Setup the HTTP server (Express.js)
-			require('./http-server/setup_HTTPServer')();
+			// Setup the HTTP server (Express.js) and import the controllers
+			require('./http-server/setup_HTTPServer')(function () {
+
+			});
 		});
 
 		NotificationCentre.emit('startup:database');

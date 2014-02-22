@@ -13,7 +13,6 @@
 	"dependencies": {
 		"express": "latest",
 		"mongoose": "latest",
-		"winston": "latest",
-		"winston-mongodb": "latest"
+		"helmet": "latest"
 	}
 }

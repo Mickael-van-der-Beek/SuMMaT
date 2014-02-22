@@ -1,24 +1,30 @@
 var util = require('util');
 
-function ExpressMiddlewareCenter (app, loggerMiddleware, validationMiddleware) {
+function ExpressMiddlewareCenter (server, validationMiddleware, authMiddleware, responseHandler, options) {
 
 	thid.middlewares = [];
 
-	this.logger = loggerMiddleware;
+	this.defaultAuth = !!options.defaultAuth;
 
-	this.validation = validationMiddleware;
+	this.validator = validationMiddleware || [];
 
-	app.GET = this.wrap(app.get);
-	app.get = deprecateExpressMethod(app.get);
+	this.authenticator = authMiddleware || [];
 
-	app.POST = this.wrap(app.post);
-	app.post = deprecateExpressMethod(app.post);
+	if(responseHandler) {
+		this.responseHandler = responseHandler;
+	}
 
-	app.PUT = this.wrap(app.put);
-	app.put = deprecateExpressMethod(app.put);
+	server.GET = this.wrap(server.get);
+	server.get = this.deprecate(server.get);
 
-	app.DELETE = this.wrap(app.delete);
-	app.delete = deprecateExpressMethod(app.delete);
+	server.POST = this.wrap(server.post);
+	server.post = this.deprecate(server.post);
+
+	server.PUT = this.wrap(server.put);
+	server.put = this.deprecate(server.put);
+
+	server.DELETE = this.wrap(server.delete);
+	server.delete = this.deprecate(server.delete);
 
 }
 
@@ -26,15 +32,40 @@ ExpressMiddlewareCenter.prototype.wrap = function (method) {
 
 	var self = this;
 
-	return function (uri, inputValidation, options, outputValidation, callback) {
-		var args = [uri, self.logger, self.validation(inputValidation)].concat(this.middlewares);
-		method.apply(this, args);
+	return function (uri, inputValidation, outputValidation, controller, options) {
+		var beforeControllerArgs = [
+			uri
+		]
+		.concat(self.validator(inputValidation))
+		.concat(self.middlewares);
+
+		var auth = (options.auth !== undefined) ? options.auth : self.defaultAuth;
+		if(auth) {
+			beforeControllerArgs.push(self.authenticator);
+		}
+
+		var afterControllerArgs = [
+			self.validator(outputValidation),
+		];
+
+		method.apply(
+			self,
+			[]
+			.concat(beforeControllerArgs)
+			.concat(controller)
+			.concat(afterControllerArgs)
+			.concat(self.responseHandler)
+		);
 	};
 
 };
 
 ExpressMiddlewareCenter.prototype.plugin = function (middleware) {
 	this.middlewares.push(middleware);
+};
+
+ExpressMiddlewareCenter.prototype.responseHandler = function (req, res) {
+	res.send(200);
 };
 
 ExpressMiddlewareCenter.prototype.deprecate = function (method) {
@@ -44,6 +75,7 @@ ExpressMiddlewareCenter.prototype.deprecate = function (method) {
 		'app.get, app.post, app.put and app.delete are deprecated. ',
 		'Please use app.GET, app.POST, app.PUT or app.DELETE instead.'
 	].join('');
+
 	return util.deprecate(method, message);
 
 };

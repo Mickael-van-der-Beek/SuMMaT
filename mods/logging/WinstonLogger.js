@@ -11,7 +11,7 @@ var hostname = databaseConfig.hostname
 
 function RequestLogger () {
 
-	this.logger = new (winston.Logger)({
+	return new (winston.Logger)({
 		transports: [
 			new (winston.transports.Console)(),
 			new (winston.transports.MongoDB)({
@@ -24,15 +24,27 @@ function RequestLogger () {
 				port: port,
 				host: hostname,
 				db: dbname
+			}),
+			new (winston.transports.MongoDB)({
+				collection: 'errors',
+				username: username,
+				password: password,
+				errorTimeout: 5000,
+				storeHost: false,
+				level: 'errors',
+				port: port,
+				host: hostname,
+				db: dbname
 			})
 		],
 		levels: {
-			requests: 0
+			requests: 0,
+			errors: 0
 		}
 	});
 
 }
 
-var logger = new RequestLogger().logger;
+var logger = new RequestLogger();
 
 module.exports = logger;
